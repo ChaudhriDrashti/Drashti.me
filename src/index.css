@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 92%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 92%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 92%;
+
+    --primary: 166 100% 70%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 222 30% 15%;
+    --secondary-foreground: 210 40% 92%;
+
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 166 100% 70%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 166 100% 70%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 92%;
+    --sidebar-primary: 166 100% 70%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 15%;
+    --sidebar-accent-foreground: 210 40% 92%;
+    --sidebar-border: 222 30% 18%;
+    --sidebar-ring: 166 100% 70%;
+
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    --gradient-primary: linear-gradient(135deg, hsl(166, 100%, 70%), hsl(190, 100%, 60%));
+    --gradient-card: linear-gradient(145deg, hsl(222, 47%, 10%), hsl(222, 47%, 7%));
+    --shadow-glow: 0 0 30px -5px hsl(166 100% 70% / 0.15);
+    --shadow-card: 0 4px 20px -2px hsl(222 47% 4% / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-sans);
+  }
+
+  code, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .glow-border {
+    @apply border border-primary/20;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+
+  .section-padding {
+    @apply px-4 py-16 sm:px-6 sm:py-20 md:px-10 md:py-20 lg:px-16 xl:px-24;
+  }
+
+  .nav-link {
+    @apply text-muted-foreground hover:text-primary transition-colors duration-300 text-sm font-mono tracking-wide;
+  }
+
+  .nav-link-active {
+    @apply text-primary;
+  }
+
+  .portfolio-grid {
+    width: 100%;
+  }
+
+  .stage-card {
+    position: relative;
+  }
+}
+
+@media (min-width: 1024px) {
+  .portfolio-stage {
+    background:
+      radial-gradient(circle at 12% 18%, hsl(var(--primary) / 0.08), transparent 32%),
+      radial-gradient(circle at 88% 36%, hsl(190 100% 60% / 0.08), transparent 30%);
+  }
+
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+    width: min(1440px, 97vw);
+    margin: 0 auto;
+    padding: 1rem 0 2.4rem;
+    align-items: stretch;
+  }
+
+  .stage-card {
+    display: flex;
+    height: 100%;
+    border: 1px solid hsl(var(--border) / 0.8);
+    border-radius: 1rem;
+    background: linear-gradient(150deg, hsl(var(--secondary) / 0.3), hsl(var(--background) / 0.88));
+    box-shadow: 0 16px 42px -30px hsl(var(--primary) / 0.35);
+    overflow: hidden;
+  }
+
+  .stage-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, hsl(var(--primary) / 0.04) 45%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stage-card > section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1.4rem 1.3rem !important;
+    min-height: 100%;
+  }
+
+  .stage-about {
+    grid-column: span 5;
+  }
+
+  .stage-projects {
+    grid-column: span 7;
+  }
+
+  .stage-experience {
+    grid-column: span 8;
+  }
+
+  .stage-education {
+    grid-column: span 4;
+  }
+
+  .stage-skills {
+    grid-column: span 6;
+  }
+
+  .stage-certifications {
+    grid-column: span 6;
+  }
+
+  .stage-contact {
+    grid-column: 2 / span 10;
+  }
+
+  .projects-compact .projects-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+
+  .projects-compact .projects-other-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+
+  .projects-compact .projects-other-tools {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+
+  .skills-compact .skills-intro {
+    display: none;
+  }
+
+  .certifications-compact .certifications-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .certifications-compact .certifications-achievement {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--secondary));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Selection color */
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
