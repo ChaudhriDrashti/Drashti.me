@@ -13,9 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const UPLOADS_DIR = IS_VERCEL
-  ? path.join("/tmp", "uploads")
-  : path.join(ROOT_DIR, "uploads");
 const PORT = Number(process.env.API_PORT ?? 3001);
 const JWT_SECRET = process.env.JWT_SECRET ?? "change-this-secret-in-env";
 const NODE_ENV = process.env.NODE_ENV ?? "development";
@@ -60,7 +57,6 @@ app.use(
   ),
 );
 app.use(express.json({ limit: "2mb" }));
-app.use("/uploads", express.static(UPLOADS_DIR));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -188,6 +184,17 @@ const ensureSchema = async () => {
       key TEXT UNIQUE NOT NULL,
       value TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS media_files (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bucket TEXT NOT NULL,
+      name TEXT NOT NULL,
+      mime_type TEXT,
+      content BYTEA NOT NULL,
+      size_bytes INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (bucket, name)
     );
 
     ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
@@ -482,27 +489,55 @@ app.delete("/api/admin/:table/:id", authMiddleware, async (req, res) => {
 app.get("/api/storage/:bucket", authMiddleware, async (req, res) => {
   try {
     const { bucket } = req.params;
-    const bucketDir = path.join(UPLOADS_DIR, bucket);
-    await fs.mkdir(bucketDir, { recursive: true });
 
-    const names = await fs.readdir(bucketDir);
-    const files = await Promise.all(
-      names.map(async (name) => {
-        const fullPath = path.join(bucketDir, name);
-        const stat = await fs.stat(fullPath);
-        return {
-          id: `${bucket}/${name}`,
-          name,
-          created_at: stat.birthtime.toISOString(),
-          metadata: { size: stat.size, mimetype: null },
-        };
-      }),
+    const { rows } = await pool.query(
+      `
+        SELECT name, created_at, size_bytes, mime_type
+        FROM media_files
+        WHERE bucket = $1
+        ORDER BY created_at DESC
+        LIMIT 200
+      `,
+      [bucket],
     );
 
-    files.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    const files = rows.map((row) => ({
+      id: `${bucket}/${row.name}`,
+      name: row.name,
+      created_at: new Date(row.created_at).toISOString(),
+      metadata: { size: row.size_bytes, mimetype: row.mime_type ?? null },
+    }));
+
     return res.json({ files });
   } catch (error) {
     return res.status(500).json({ error: error.message ?? "Failed to list files" });
+  }
+});
+
+app.get("/uploads/:bucket/:name", async (req, res) => {
+  try {
+    const { bucket, name } = req.params;
+
+    const { rows } = await pool.query(
+      `
+        SELECT content, mime_type
+        FROM media_files
+        WHERE bucket = $1 AND name = $2
+        LIMIT 1
+      `,
+      [bucket, name],
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    const file = rows[0];
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.type(file.mime_type || "application/octet-stream");
+    return res.send(file.content);
+  } catch (error) {
+    return res.status(500).json({ error: error.message ?? "Failed to fetch file" });
   }
 });
 
@@ -514,9 +549,19 @@ app.post("/api/storage/:bucket/upload", authMiddleware, upload.single("file"), a
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const bucketDir = path.join(UPLOADS_DIR, bucket);
-    await fs.mkdir(bucketDir, { recursive: true });
-    await fs.writeFile(path.join(bucketDir, filename), req.file.buffer);
+    await pool.query(
+      `
+        INSERT INTO media_files (bucket, name, mime_type, content, size_bytes)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (bucket, name)
+        DO UPDATE SET
+          mime_type = EXCLUDED.mime_type,
+          content = EXCLUDED.content,
+          size_bytes = EXCLUDED.size_bytes,
+          created_at = NOW()
+      `,
+      [bucket, filename, req.file.mimetype ?? null, req.file.buffer, req.file.size ?? 0],
+    );
 
     return res.status(201).json({ name: filename });
   } catch (error) {
@@ -528,14 +573,16 @@ app.post("/api/storage/:bucket/remove", authMiddleware, async (req, res) => {
   try {
     const { bucket } = req.params;
     const names = Array.isArray(req.body?.names) ? req.body.names : [];
-    const bucketDir = path.join(UPLOADS_DIR, bucket);
 
-    await Promise.all(
-      names.map(async (name) => {
-        const fullPath = path.join(bucketDir, String(name));
-        await fs.rm(fullPath, { force: true });
-      }),
-    );
+    if (names.length) {
+      await pool.query(
+        `
+          DELETE FROM media_files
+          WHERE bucket = $1 AND name = ANY($2::text[])
+        `,
+        [bucket, names.map((name) => String(name))],
+      );
+    }
 
     return res.json({ ok: true });
   } catch (error) {

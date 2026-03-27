@@ -6,8 +6,7 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-const image = "1774420986540-WhatsApp-Image-2026-03-25-at-11.59.29-AM.jpeg";
-const imageUrl = `/uploads/media/${encodeURIComponent(image)}`;
+const imageUrl = "/Image.jpeg";
 
 await pool.query(
   `

@@ -114,7 +114,7 @@ This project is configured for Vercel with:
 ### Notes
 
 - `server/index.js` auto-runs as serverless on Vercel (no local `listen()` there).
-- Upload files are stored in `/tmp/uploads` on Vercel and are ephemeral; for durable media persistence use a persistent object storage strategy.
+- Media uploads are persisted in Neon Postgres (`media_files` table), so uploaded images survive redeploys.
 
 ## Recommended Deployment Topology
 
