@@ -85,8 +85,7 @@ const Skills = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.08 }}
-            whileHover={{ y: -4 }}
-            className="card-gradient border border-border rounded-xl p-4 md:p-4 hover:border-primary/40 transition-colors"
+            className="card-gradient border border-border rounded-xl p-4 md:p-4 hover:border-primary/40 hover:-translate-y-1 transition-all duration-300"
           >
             <div className="flex items-center justify-between mb-3 gap-3">
               <span className="font-mono text-[11px] tracking-wider text-primary">Category {String(i + 1).padStart(2, "0")}</span>

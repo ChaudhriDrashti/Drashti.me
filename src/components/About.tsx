@@ -46,6 +46,8 @@ const About = () => {
               <img
                 src={profileImage}
                 alt="Profile"
+                loading="lazy"
+                decoding="async"
                 className="w-full aspect-square rounded-lg object-cover border-2 border-primary/30"
               />
             ) : (

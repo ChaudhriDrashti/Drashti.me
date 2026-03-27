@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBgJpg from "@/assets/hero-bg.jpg";
+import heroBgWebP from "@/assets/hero-bg.webp";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const Hero = () => {
   const { get } = useSiteSettings();
-  const background = get("hero_bg_url", heroBg);
+  const customBgUrl = get("hero_bg_url", "");
   const intro = get("hero_intro", "Hello, my name is");
   const name = get("hero_name", "Drashti Chaudhari.");
   const subtitle = get("hero_subtitle", "I engineer the future of flight.");
@@ -17,16 +18,32 @@ const Hero = () => {
   <section className="relative min-h-screen flex items-center overflow-hidden">
     {/* Background image */}
     <div className="absolute inset-0">
-      <motion.img
-        src={background}
-        alt=""
-        width={1920}
-        height={1080}
-        className="w-full h-full object-cover opacity-60"
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.05, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {customBgUrl ? (
+        <img
+          src={customBgUrl}
+          alt=""
+          width={1920}
+          height={1080}
+          loading="eager"
+          decoding="async"
+          className="w-full h-full object-cover opacity-60"
+          style={{ willChange: 'auto' }}
+        />
+      ) : (
+        <picture>
+          <source srcSet={heroBgWebP} type="image/webp" />
+          <img
+            src={heroBgJpg}
+            alt=""
+            width={1920}
+            height={1080}
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-cover opacity-60"
+            style={{ willChange: 'auto' }}
+          />
+        </picture>
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-background/25 via-background/45 to-background/80" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_30%,hsl(166_100%_70%/.18),transparent_55%)]" />
     </div>
